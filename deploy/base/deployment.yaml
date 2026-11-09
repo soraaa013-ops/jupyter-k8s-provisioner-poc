@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jupyterlab
+  labels:
+    app.kubernetes.io/name: jupyterlab
+    component: jupyterlab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jupyterlab
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: jupyterlab
+        component: jupyterlab
+    spec:
+      serviceAccountName: jupyterlab
+      automountServiceAccountToken: true
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: jupyterlab
+          image: docker.io/jupyter/base-notebook:python-3.11
+          imagePullPolicy: IfNotPresent
+          command: ["bash", "-lc"]
+          args:
+            - |
+              set -euo pipefail
+              python -m pip install --no-cache-dir \
+                --index-url=http://mirrors.tencentyun.com/pypi/simple \
+                --trusted-host=mirrors.tencentyun.com \
+                'gateway-provisioners[k8s]==0.5.0'
+              jupyter k8s-spec install \
+                --user \
+                --image-name elyra/kernel-py:3.3.0 \
+                --kernel-name k8s_python \
+                --display-name 'Kubernetes Python'
+              python -c 'from pathlib import Path; p=Path.home()/".local/share/jupyter/kernels/k8s_python/scripts/kernel-pod.yaml.j2"; s=p.read_text(); p.write_text(s.replace("spec:\n  restartPolicy:", "spec:\n  automountServiceAccountToken: false\n  restartPolicy:", 1))'
+              exec start-notebook.py \
+                --ServerApp.ip=0.0.0.0 \
+                --ServerApp.port=8888 \
+                --ServerApp.token=poc-only-change-me \
+                --ServerApp.password=
+          env:
+            - name: GP_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: GP_SHARED_NAMESPACE
+              value: "true"
+            - name: GP_LAUNCH_TIMEOUT
+              value: "180"
+            - name: KERNEL_LAUNCH_TIMEOUT
+              value: "180"
+            - name: KERNEL_SERVICE_ACCOUNT_NAME
+              value: default
+            - name: KERNEL_UID
+              value: "1000"
+            - name: KERNEL_GID
+              value: "100"
+            - name: KERNEL_CPUS
+              value: "500m"
+            - name: KERNEL_CPUS_LIMIT
+              value: "1"
+            - name: KERNEL_MEMORY
+              value: "512Mi"
+            - name: KERNEL_MEMORY_LIMIT
+              value: "1Gi"
+          ports:
+            - name: http
+              containerPort: 8888
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+          volumeMounts:
+            - name: work
+              mountPath: /home/jovyan/work
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 24
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: work
+          emptyDir: {}
+

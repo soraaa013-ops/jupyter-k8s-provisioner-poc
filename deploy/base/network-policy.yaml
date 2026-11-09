@@ -1,0 +1,49 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kernel-default-deny
+spec:
+  podSelector:
+    matchLabels:
+      component: kernel
+  policyTypes: ["Ingress", "Egress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kernel-jupyterlab-traffic
+spec:
+  podSelector:
+    matchLabels:
+      component: kernel
+  policyTypes: ["Ingress", "Egress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              component: jupyterlab
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              component: jupyterlab
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kernel-dns
+spec:
+  podSelector:
+    matchLabels:
+      component: kernel
+  policyTypes: ["Egress"]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

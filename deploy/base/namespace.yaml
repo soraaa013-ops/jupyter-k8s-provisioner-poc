@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: jupyter-poc
+  labels:
+    app.kubernetes.io/part-of: jupyter-k8s-poc
+
