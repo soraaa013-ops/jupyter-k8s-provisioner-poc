@@ -45,6 +45,16 @@ spec:
                 --ServerApp.token=poc-only-change-me \
                 --ServerApp.password=
           env:
+            - name: PYTHONPATH
+              value: /opt/poc-telemetry
+            - name: UEM_COLLECTOR_URL
+              value: http://data-gateway:8080/v1/uem/events
+            - name: UEM_COLLECTOR_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: mock-database-credentials
+                  key: gateway-token
+                  optional: true
             - name: GP_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -82,6 +92,17 @@ spec:
           volumeMounts:
             - name: work
               mountPath: /home/jovyan/work
+            - name: telemetry-server-extension
+              mountPath: /opt/poc-telemetry/poc_telemetry.py
+              subPath: poc_telemetry.py
+              readOnly: true
+            - name: telemetry-server-extension
+              mountPath: /etc/jupyter/jupyter_server_config.d/poc-telemetry.json
+              subPath: poc-telemetry.json
+              readOnly: true
+            - name: telemetry-labextension
+              mountPath: /opt/conda/share/jupyter/labextensions/jupyterlab-poc-uem
+              readOnly: true
           readinessProbe:
             tcpSocket:
               port: http
@@ -95,4 +116,18 @@ spec:
       volumes:
         - name: work
           emptyDir: {}
+        - name: telemetry-server-extension
+          configMap:
+            name: jupyter-server-poc-telemetry
+            optional: true
+        - name: telemetry-labextension
+          configMap:
+            name: jupyterlab-poc-uem
+            optional: true
+            items:
+              - {key: package.json, path: package.json}
+              - {key: remoteEntry.js, path: static/remoteEntry.6bea3d32b738d7a2be04.js}
+              - {key: chunk.js, path: static/509.4897d7b1e6821985f4d8.js}
+              - {key: style.js, path: static/style.js}
+              - {key: third-party-licenses.json, path: static/third-party-licenses.json}
 

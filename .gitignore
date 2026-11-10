@@ -3,4 +3,8 @@
 *.log
 .env
 kubeconfig*
+node_modules/
+lib/
+__pycache__/
+*.pyc
 

@@ -1,0 +1,7 @@
+{
+  "ServerApp": {
+    "jpserver_extensions": {
+      "poc_telemetry": true
+    }
+  }
+}

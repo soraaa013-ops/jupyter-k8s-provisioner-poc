@@ -7,11 +7,12 @@
 | 编号 | 验证项 | 状态 | 入口 |
 | --- | --- | --- | --- |
 | 001 | Jupyter Server 与 Kernel 分 Pod | 已跑通 | [`deploy/base`](deploy/base)、[`docs/architecture.md`](docs/architecture.md) |
-| 002 | JupyterLab UEM 埋点与上报 | 设计完成，待内部 UEM 协议 | [`docs/uem.md`](docs/uem.md) |
-| 003 | Kernel 经受控 SQL Proxy 访问数据库 | 架构完成，待选数据库协议 | [`docs/sql-proxy.md`](docs/sql-proxy.md) |
-| 004 | 企业 SSO 接入 | 方案完成，待内部 IdP 参数 | [`docs/sso.md`](docs/sso.md) |
+| 002 | JupyterLab UEM 埋点与上报 | Mock collector、Lab/Server 扩展已实测 | [`docs/uem.md`](docs/uem.md) |
+| 003 | Kernel 经受控 Data Gateway 访问数据源 | PG/MySQL/Mongo/ES 已实测；TKE 网络隔离未通过 | [`docs/sql-proxy.md`](docs/sql-proxy.md) |
+| 004 | 企业 SSO 接入 | Mock OIDC → JupyterHub 登录已实测 | [`docs/sso.md`](docs/sso.md) |
 
 整体组件边界见 [`docs/jupyter-architecture.md`](docs/jupyter-architecture.md)，后续顺序和验收标准见 [`docs/poc-roadmap.md`](docs/poc-roadmap.md)。
+集群实际测试结果（包括没有通过的 NetworkPolicy）见 [`docs/validation-report.md`](docs/validation-report.md)。
 
 ## 核心原则
 
@@ -28,9 +29,12 @@
 ## 快速开始（实验 001）
 
 ```bash
+kubectl apply -k deploy/platform-poc
 kubectl apply -k deploy/base
 kubectl -n jupyter-poc rollout status deployment/jupyterlab
 kubectl -n jupyter-poc port-forward service/jupyterlab 8888:8888
 ```
 
 打开 `http://127.0.0.1:8888/lab`。操作说明见 [`docs/operations.md`](docs/operations.md)。
+
+`deploy/platform-poc` 会启动临时 PostgreSQL、MySQL、MongoDB、Elasticsearch、Data Gateway、mock OIDC 和 JupyterHub，仅供 POC；其中 Secret 均为公开的 mock 值，不可用于真实环境。

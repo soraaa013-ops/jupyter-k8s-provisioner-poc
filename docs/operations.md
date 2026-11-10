@@ -2,7 +2,10 @@
 
 ## 部署
 
+综合 POC 先部署 mock 数据源、Gateway、OIDC 和扩展 ConfigMap，再部署 JupyterLab：
+
 ```bash
+kubectl apply -k deploy/platform-poc
 kubectl apply -k deploy/base
 kubectl -n jupyter-poc rollout status deploy/jupyterlab --timeout=300s
 kubectl -n jupyter-poc get pods -L component,kernel_id
@@ -52,4 +55,15 @@ kubectl delete namespace jupyter-poc
 升级时应回归创建、执行、中断、重启、删除、Server 重启后的孤儿清理与网络
 隔离，并验证 Jupyter Server、jupyter_client、gateway-provisioners、Python
 Kubernetes client 和 Kernel 镜像的版本组合。
+
+## 综合平台验证
+
+四种后端和控制组件都应为 Ready。自动化数据访问与隔离测试在 Kernel Pod 中运行：
+
+```bash
+kernel_pod=$(kubectl -n jupyter-poc get pod -l component=kernel -o jsonpath='{.items[0].metadata.name}')
+kubectl -n jupyter-poc exec -i "$kernel_pod" -- python - < tests/platform_smoke.py
+```
+
+当前 TKE Serverless 环境中该测试预期因数据库端口仍可直连而失败；不能忽略此失败。测试详情见 `docs/validation-report.md`。
 

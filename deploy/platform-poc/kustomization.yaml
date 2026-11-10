@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: jupyter-poc
+resources:
+  - mock-data.yaml
+  - data-gateway.yaml
+  - network-policy.yaml
+  - sso-poc.yaml
+configMapGenerator:
+  - name: data-gateway-source
+    files:
+      - app.py=data-gateway/app.py
+      - requirements.txt=data-gateway/requirements.txt
+  - name: mock-oidc-source
+    files:
+      - app.py=mock-oidc/app.py
+      - requirements.txt=mock-oidc/requirements.txt
+  - name: jupyter-server-poc-telemetry
+    files:
+      - poc_telemetry.py=extensions/jupyter-server-poc-telemetry/poc_telemetry.py
+      - poc-telemetry.json=extensions/jupyter-server-poc-telemetry/poc-telemetry.json
+  - name: jupyterlab-poc-uem
+    files:
+      - package.json=extensions/jupyterlab-poc-uem/labextension/package.json
+      - remoteEntry.js=extensions/jupyterlab-poc-uem/labextension/static/remoteEntry.6bea3d32b738d7a2be04.js
+      - chunk.js=extensions/jupyterlab-poc-uem/labextension/static/509.4897d7b1e6821985f4d8.js
+      - style.js=extensions/jupyterlab-poc-uem/labextension/static/style.js
+      - third-party-licenses.json=extensions/jupyterlab-poc-uem/labextension/static/third-party-licenses.json
+generatorOptions:
+  disableNameSuffixHash: true
