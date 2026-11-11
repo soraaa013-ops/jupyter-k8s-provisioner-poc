@@ -1,35 +1,58 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
-metadata: {name: kernel-to-data-gateway}
+metadata: {name: kernel-to-uem-collector}
 spec:
   podSelector: {matchLabels: {component: kernel}}
   policyTypes: [Egress]
   egress:
-    - to: [{podSelector: {matchLabels: {component: data-gateway}}}]
+    - to: [{podSelector: {matchLabels: {component: uem-collector}}}]
       ports: [{protocol: TCP, port: 8080}]
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
-metadata: {name: mock-databases-only-from-gateway}
+metadata: {name: kernel-to-native-data-proxies}
 spec:
-  podSelector: {matchLabels: {component: mock-database}}
-  policyTypes: [Ingress]
-  ingress:
-    - from: [{podSelector: {matchLabels: {component: data-gateway}}}]
+  podSelector: {matchLabels: {component: kernel}}
+  policyTypes: [Egress]
+  egress:
+    - to: [{podSelector: {matchLabels: {component: native-data-proxy}}}]
+      ports:
+        - {protocol: TCP, port: 5432}
+        - {protocol: TCP, port: 6033}
+        - {protocol: TCP, port: 27017}
+        - {protocol: TCP, port: 9200}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
-metadata: {name: data-gateway-ingress-egress}
+metadata: {name: native-data-proxy-ingress-egress}
 spec:
-  podSelector: {matchLabels: {component: data-gateway}}
+  podSelector: {matchLabels: {component: native-data-proxy}}
   policyTypes: [Ingress, Egress]
   ingress:
-    - from:
-        - {podSelector: {matchLabels: {component: kernel}}}
-        - {podSelector: {matchLabels: {component: jupyterlab}}}
-      ports: [{protocol: TCP, port: 8080}]
+    - from: [{podSelector: {matchLabels: {component: kernel}}}]
   egress:
     - to: [{podSelector: {matchLabels: {component: mock-database}}}]
     - to:
         - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
       ports: [{protocol: UDP, port: 53}, {protocol: TCP, port: 53}]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: mock-databases-from-native-proxies}
+spec:
+  podSelector: {matchLabels: {component: mock-database}}
+  policyTypes: [Ingress]
+  ingress:
+    - from: [{podSelector: {matchLabels: {component: native-data-proxy}}}]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: uem-collector-ingress}
+spec:
+  podSelector: {matchLabels: {component: uem-collector}}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - {podSelector: {matchLabels: {component: kernel}}}
+        - {podSelector: {matchLabels: {component: jupyterlab}}}
+      ports: [{protocol: TCP, port: 8080}]

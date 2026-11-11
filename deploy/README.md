@@ -1,7 +1,7 @@
 # Kubernetes manifests
 
 - `base/`：Jupyter Server、Kubernetes Provisioner、RBAC、Service 和 Kernel NetworkPolicy。
-- `platform-poc/`：四种 mock 数据源、Data Gateway、mock OIDC、JupyterHub 和补充网络策略。
+- `platform-poc/`：四种 mock 数据源、原生协议代理、UEM collector、mock OIDC、JupyterHub 和补充网络策略。
 
 完整部署必须从仓库根目录执行：
 

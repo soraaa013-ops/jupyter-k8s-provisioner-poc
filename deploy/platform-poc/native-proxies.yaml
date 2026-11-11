@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: postgres-proxy}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: postgres-proxy}}
+  template:
+    metadata: {labels: {app: postgres-proxy, component: native-data-proxy}}
+    spec:
+      containers:
+        - name: pgbouncer
+          image: postgres:16-alpine
+          command: ["sh", "-ec"]
+          args:
+            - |
+              sed -i 's#https://dl-cdn.alpinelinux.org/alpine#https://mirrors.cloud.tencent.com/alpine#g' /etc/apk/repositories
+              apk add --no-cache pgbouncer
+              exec su-exec postgres pgbouncer /etc/pgbouncer/pgbouncer.ini
+          ports: [{name: postgres, containerPort: 5432}]
+          readinessProbe: {tcpSocket: {port: postgres}, initialDelaySeconds: 3, periodSeconds: 3}
+          resources:
+            requests: {cpu: 25m, memory: 32Mi}
+            limits: {cpu: 250m, memory: 128Mi}
+          volumeMounts:
+            - {name: config, mountPath: /etc/pgbouncer/pgbouncer.ini, subPath: pgbouncer.ini, readOnly: true}
+            - {name: config, mountPath: /etc/pgbouncer/userlist.txt, subPath: userlist.txt, readOnly: true}
+      volumes: [{name: config, configMap: {name: native-proxy-config}}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: postgres-proxy}
+spec: {selector: {app: postgres-proxy}, ports: [{name: postgres, port: 5432, targetPort: postgres}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: mysql-proxy}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: mysql-proxy}}
+  template:
+    metadata: {labels: {app: mysql-proxy, component: native-data-proxy}}
+    spec:
+      containers:
+        - name: proxysql
+          image: proxysql/proxysql:3.0.3
+          command: ["proxysql"]
+          args: ["-f", "-c", "/etc/proxysql.cnf", "--initial"]
+          ports:
+            - {name: mysql, containerPort: 6033}
+          readinessProbe: {tcpSocket: {port: mysql}, initialDelaySeconds: 5, periodSeconds: 3}
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          volumeMounts:
+            - {name: config, mountPath: /etc/proxysql.cnf, subPath: proxysql.cnf, readOnly: true}
+            - {name: data, mountPath: /var/lib/proxysql}
+      volumes:
+        - {name: config, configMap: {name: native-proxy-config}}
+        - {name: data, emptyDir: {}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: mysql-proxy}
+spec: {selector: {app: mysql-proxy}, ports: [{name: mysql, port: 6033, targetPort: mysql}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: mongo-proxy}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: mongo-proxy}}
+  template:
+    metadata: {labels: {app: mongo-proxy, component: native-data-proxy}}
+    spec:
+      containers:
+        - name: haproxy
+          image: haproxy:3.0-alpine
+          ports: [{name: mongo, containerPort: 27017}]
+          readinessProbe: {tcpSocket: {port: mongo}, initialDelaySeconds: 3, periodSeconds: 3}
+          resources:
+            requests: {cpu: 25m, memory: 32Mi}
+            limits: {cpu: 250m, memory: 128Mi}
+          volumeMounts: [{name: config, mountPath: /usr/local/etc/haproxy/haproxy.cfg, subPath: haproxy.cfg, readOnly: true}]
+      volumes: [{name: config, configMap: {name: native-proxy-config}}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: mongo-proxy}
+spec: {selector: {app: mongo-proxy}, ports: [{name: mongo, port: 27017, targetPort: mongo}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: elasticsearch-proxy}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: elasticsearch-proxy}}
+  template:
+    metadata: {labels: {app: elasticsearch-proxy, component: native-data-proxy}}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports: [{name: http, containerPort: 9200}]
+          readinessProbe: {httpGet: {path: /, port: http}, initialDelaySeconds: 3, periodSeconds: 3}
+          resources:
+            requests: {cpu: 25m, memory: 32Mi}
+            limits: {cpu: 250m, memory: 128Mi}
+          volumeMounts: [{name: config, mountPath: /etc/nginx/nginx.conf, subPath: nginx.conf, readOnly: true}]
+      volumes: [{name: config, configMap: {name: native-proxy-config}}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: elasticsearch-proxy}
+spec: {selector: {app: elasticsearch-proxy}, ports: [{name: http, port: 9200, targetPort: http}]}

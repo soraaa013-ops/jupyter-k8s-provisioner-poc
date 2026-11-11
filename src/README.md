@@ -4,12 +4,17 @@
 
 ```text
 src/
-├── data-gateway/                     # 多数据源访问、策略和审计
+├── uem-collector/                    # UEM mock 接收、校验和汇总
 │   ├── app.py
 │   └── requirements.txt
 ├── mock-oidc/                        # 仅供测试的 OIDC Provider
 │   ├── app.py
 │   └── requirements.txt
+├── native-proxies/                   # 开源原生协议代理配置
+│   ├── pgbouncer.ini
+│   ├── proxysql.cnf
+│   ├── haproxy.cfg
+│   └── nginx.conf
 └── extensions/
     ├── jupyterlab-poc-uem/           # TypeScript 前端扩展和预构建产物
     │   ├── src/index.ts
@@ -18,18 +23,25 @@ src/
         └── poc_telemetry.py
 ```
 
-## Data Gateway API
+## 原生数据库连接
+
+用户代码保持数据库驱动原有用法，只替换 host/port：
+
+```python
+psycopg.connect(host="postgres-proxy", port=5432, ...)
+pymysql.connect(host="mysql-proxy", port=6033, ...)
+MongoClient("mongodb://...@mongo-proxy:27017/")
+Elasticsearch("http://elasticsearch-proxy:9200")
+```
+
+完整验证见 `tests/native_proxy_smoke.py`。
+
+## UEM Collector API
 
 | Method | Path | 功能 |
 | --- | --- | --- |
-| POST | `/v1/sql/postgres` | 参数化只读 PostgreSQL 查询 |
-| POST | `/v1/sql/mysql` | 参数化只读 MySQL 查询 |
-| POST | `/v1/document/mongo/find` | 受限 MongoDB find |
-| POST | `/v1/search/elasticsearch` | 受限 Elasticsearch search |
 | POST | `/v1/uem/events` | UEM schema 校验和接收 |
 | GET | `/v1/uem/summary` | POC 内存汇总 |
-
-所有非健康检查接口要求 Bearer token。SQL 只允许单条只读语句；Mongo/ES 禁止可执行脚本类查询。当前鉴权和解析足够验证架构，不是生产级 SQL 防火墙。
 
 ## 构建 JupyterLab 扩展
 

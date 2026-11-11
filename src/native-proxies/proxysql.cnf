@@ -1,0 +1,47 @@
+datadir="/var/lib/proxysql"
+
+admin_variables=
+{
+  admin_credentials="admin:mock-admin-password"
+  mysql_ifaces="127.0.0.1:6032"
+}
+
+mysql_variables=
+{
+  threads=2
+  max_connections=256
+  interfaces="0.0.0.0:6033"
+  default_schema="poc"
+  connect_timeout_server=3000
+  default_query_timeout=10000
+  commands_stats=true
+  sessions_sort=true
+  monitor_enabled=false
+  eventslog_filename="/var/lib/proxysql/events.json"
+  eventslog_format=2
+  eventslog_default_log=1
+}
+
+mysql_servers=
+(
+  {
+    address="mock-mysql"
+    port=3306
+    hostgroup=10
+    max_connections=64
+  }
+)
+
+mysql_users=
+(
+  {
+    username="gateway"
+    password="mock-mysql-password"
+    default_hostgroup=10
+    default_schema="poc"
+    schema_locked=1
+    transaction_persistent=1
+    max_connections=32
+    active=1
+  }
+)

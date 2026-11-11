@@ -7,8 +7,8 @@ import sys
 import urllib.error
 import urllib.request
 
-BASE = os.getenv("DATA_GATEWAY_URL", "http://data-gateway:8080")
-TOKEN = os.getenv("DATA_GATEWAY_TOKEN", "mock-kernel-session-token")
+BASE = os.getenv("UEM_COLLECTOR_URL", "http://uem-collector:8080")
+TOKEN = os.getenv("UEM_COLLECTOR_TOKEN", "mock-kernel-session-token")
 HEADERS = {"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json", "X-Trace-Id": "automated-smoke"}
 failures = []
 
@@ -25,12 +25,6 @@ def call(path, body, expected=200):
         failures.append(f"{path}: expected {expected}, got {status}")
 
 
-call("/v1/sql/postgres", {"sql": "select name,score from demo_items order by id"})
-call("/v1/sql/mysql", {"sql": "select name,score from demo_items order by id"})
-call("/v1/document/mongo/find", {"collection": "demo_items", "filter": {"score": {"$gte": 88}}})
-call("/v1/search/elasticsearch", {"index": "demo-items", "query": {"range": {"score": {"gte": 88}}}})
-call("/v1/sql/postgres", {"sql": "drop table demo_items"}, 403)
-call("/v1/document/mongo/find", {"collection": "demo_items", "filter": {"$where": "true"}}, 403)
 call("/v1/uem/events", {"event": "cell_execute_end", "session_id": "smoke", "attributes": {"code": "secret"}}, 422)
 
 for host, port in (("mock-postgres", 5432), ("mock-mysql", 3306), ("mock-mongo", 27017), ("mock-elasticsearch", 9200)):

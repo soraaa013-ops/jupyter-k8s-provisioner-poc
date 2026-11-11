@@ -66,3 +66,17 @@ kubectl -n jupyter-poc exec -i "$kernel_pod" -- python - < tests/platform_smoke.
 
 当前 TKE Serverless 环境中该测试预期因数据库端口仍可直连而失败；不能忽略此失败。测试详情见 `docs/validation-report.md`。
 
+### 原生数据库代理验证
+
+Kernel 镜像需预装标准驱动；POC 可临时安装后运行：
+
+```bash
+kernel_pod=$(kubectl -n jupyter-poc get pod -l component=kernel -o jsonpath='{.items[0].metadata.name}')
+kubectl -n jupyter-poc exec "$kernel_pod" -- python -m pip install \
+  'psycopg[binary]==3.2.3' 'PyMySQL==1.1.1' \
+  'pymongo==4.10.1' 'elasticsearch==8.15.1'
+kubectl -n jupyter-poc exec -i "$kernel_pod" -- python - < tests/native_proxy_smoke.py
+```
+
+期望四项分别显示 `psycopg -> PgBouncer`、`PyMySQL -> ProxySQL`、`PyMongo -> HAProxy` 和 `Elasticsearch client -> Nginx` 通过。生产镜像必须预装锁定版本，不能在 Kernel 启动后访问公网安装。
+

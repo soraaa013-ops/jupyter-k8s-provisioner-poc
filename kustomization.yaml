@@ -5,10 +5,10 @@ resources:
   - deploy/base
   - deploy/platform-poc
 configMapGenerator:
-  - name: data-gateway-source
+  - name: uem-collector-source
     files:
-      - app.py=src/data-gateway/app.py
-      - requirements.txt=src/data-gateway/requirements.txt
+      - app.py=src/uem-collector/app.py
+      - requirements.txt=src/uem-collector/requirements.txt
   - name: mock-oidc-source
     files:
       - app.py=src/mock-oidc/app.py
@@ -24,5 +24,12 @@ configMapGenerator:
       - chunk.js=src/extensions/jupyterlab-poc-uem/labextension/static/509.4897d7b1e6821985f4d8.js
       - style.js=src/extensions/jupyterlab-poc-uem/labextension/static/style.js
       - third-party-licenses.json=src/extensions/jupyterlab-poc-uem/labextension/static/third-party-licenses.json
+  - name: native-proxy-config
+    files:
+      - proxysql.cnf=src/native-proxies/proxysql.cnf
+      - haproxy.cfg=src/native-proxies/haproxy.cfg
+      - nginx.conf=src/native-proxies/nginx.conf
+      - pgbouncer.ini=src/native-proxies/pgbouncer.ini
+      - userlist.txt=src/native-proxies/userlist.txt
 generatorOptions:
   disableNameSuffixHash: true

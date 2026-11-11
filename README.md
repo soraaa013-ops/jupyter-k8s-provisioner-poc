@@ -8,7 +8,7 @@
 | --- | --- | --- | --- |
 | 001 | Jupyter Server 与 Kernel 分 Pod | 已跑通 | [`deploy/base`](deploy/base)、[`docs/architecture.md`](docs/architecture.md) |
 | 002 | JupyterLab UEM 埋点与上报 | Mock collector、Lab/Server 扩展已实测 | [`docs/uem.md`](docs/uem.md) |
-| 003 | Kernel 经受控 Data Gateway 访问数据源 | PG/MySQL/Mongo/ES 已实测；TKE 网络隔离未通过 | [`docs/sql-proxy.md`](docs/sql-proxy.md) |
+| 003 | Kernel 经原生协议代理访问数据源 | PgBouncer/ProxySQL/HAProxy/Nginx 已实测；TKE 网络隔离未通过 | [`docs/sql-proxy.md`](docs/sql-proxy.md) |
 | 004 | 企业 SSO 接入 | Mock OIDC → JupyterHub 登录已实测 | [`docs/sso.md`](docs/sso.md) |
 
 整体组件边界见 [`docs/jupyter-architecture.md`](docs/jupyter-architecture.md)，后续顺序和验收标准见 [`docs/poc-roadmap.md`](docs/poc-roadmap.md)。
@@ -18,7 +18,8 @@
 
 | 模块 | 源码 | 作用 |
 | --- | --- | --- |
-| Data Gateway | [`src/data-gateway/app.py`](src/data-gateway/app.py) | PG/MySQL 查询、Mongo find、ES search、策略与审计 |
+| 原生数据代理 | [`src/native-proxies`](src/native-proxies) | PgBouncer、ProxySQL、Mongo TCP 与 ES HTTP 代理配置 |
+| UEM Collector | [`src/uem-collector/app.py`](src/uem-collector/app.py) | UEM schema、敏感字段拒绝与 mock 汇总 |
 | JupyterLab UEM | [`src/extensions/jupyterlab-poc-uem/src/index.ts`](src/extensions/jupyterlab-poc-uem/src/index.ts) | 浏览器事件采集 |
 | Jupyter Server UEM | [`src/extensions/jupyter-server-poc-telemetry/poc_telemetry.py`](src/extensions/jupyter-server-poc-telemetry/poc_telemetry.py) | 登录态校验与同源转发 |
 | Mock OIDC | [`src/mock-oidc/app.py`](src/mock-oidc/app.py) | Authorization Code、JWT、JWKS、userinfo |
@@ -30,7 +31,7 @@ Kubernetes 清单只放在 [`deploy/`](deploy/)；公司环境替换清单见 [`
 
 - 浏览器、Jupyter Server、Kernel 和外部数据源是不同信任域。
 - Kernel 运行用户代码，默认按不可信工作负载处理。
-- 凭证不进入 Notebook、Kernel 环境变量或镜像。
+- 数据库管理员/高权限长效凭证不进入 Notebook、Kernel 环境变量或镜像；原生驱动所需的代理侧/短期凭证通过受控方式注入或签发。
 - 审计、身份和链路使用统一关联 ID，但默认不采集代码、输出、原始 SQL 和明文个人信息。
 - 每个 POC 必须留下可复现部署、正反向安全测试和生产化差距。
 
@@ -48,4 +49,4 @@ kubectl -n jupyter-poc port-forward service/jupyterlab 8888:8888
 
 打开 `http://127.0.0.1:8888/lab`。操作说明见 [`docs/operations.md`](docs/operations.md)。
 
-根目录 Kustomize 会启动临时 PostgreSQL、MySQL、MongoDB、Elasticsearch、Data Gateway、mock OIDC 和 JupyterHub，仅供 POC；其中 Secret 均为公开的 mock 值，不可用于真实环境。
+根目录 Kustomize 会启动临时 PostgreSQL、MySQL、MongoDB、Elasticsearch、四种原生代理、UEM collector、mock OIDC 和 JupyterHub，仅供 POC；其中 Secret 均为公开的 mock 值，不可用于真实环境。

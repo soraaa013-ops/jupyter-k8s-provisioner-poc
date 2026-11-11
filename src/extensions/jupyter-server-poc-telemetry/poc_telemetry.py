@@ -14,7 +14,7 @@ class TelemetryHandler(APIHandler):
         try:
             payload = json.loads(self.request.body)
             request = urllib.request.Request(
-                os.environ.get("UEM_COLLECTOR_URL", "http://data-gateway:8080/v1/uem/events"),
+                os.environ.get("UEM_COLLECTOR_URL", "http://uem-collector:8080/v1/uem/events"),
                 data=json.dumps(payload).encode(),
                 headers={"Authorization": f"Bearer {os.environ['UEM_COLLECTOR_TOKEN']}",
                          "Content-Type": "application/json",

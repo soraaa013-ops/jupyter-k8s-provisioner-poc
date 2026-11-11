@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: jupyter-poc
 resources:
   - mock-data.yaml
-  - data-gateway.yaml
+  - uem-collector.yaml
   - network-policy.yaml
   - sso-poc.yaml
+  - native-proxies.yaml
