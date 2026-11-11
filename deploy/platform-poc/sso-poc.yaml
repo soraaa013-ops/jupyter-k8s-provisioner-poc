@@ -41,23 +41,31 @@ spec:
   template:
     metadata: {labels: {app: jupyterhub-poc, component: sso-poc}}
     spec:
+      serviceAccountName: jupyterhub-poc
       containers:
         - name: hub
           image: jupyterhub/jupyterhub:5.3
           command: [sh, -ec]
           args:
             - |
-              pip install --no-cache-dir --index-url=http://mirrors.tencentyun.com/pypi/simple --trusted-host=mirrors.tencentyun.com oauthenticator==17.1.0
+              pip install --no-cache-dir --index-url=http://mirrors.tencentyun.com/pypi/simple --trusted-host=mirrors.tencentyun.com \
+                oauthenticator==17.1.0 jupyterhub-kubespawner==7.0.0
               exec jupyterhub -f /etc/jupyterhub/jupyterhub_config.py
           env:
             - {name: OAUTH_CLIENT_ID, value: jupyter-poc}
             - name: OAUTH_CLIENT_SECRET
               valueFrom: {secretKeyRef: {name: mock-database-credentials, key: gateway-token}}
-          ports: [{name: http, containerPort: 8000}]
+            - name: HUB_ADMIN_TOKEN
+              valueFrom: {secretKeyRef: {name: mock-database-credentials, key: gateway-token}}
+            - name: POD_NAMESPACE
+              valueFrom: {fieldRef: {fieldPath: metadata.namespace}}
+          ports:
+            - {name: http, containerPort: 8000}
+            - {name: hub-api, containerPort: 8081}
           resources:
             requests: {cpu: 100m, memory: 256Mi}
             limits: {cpu: "1", memory: 1Gi}
-          readinessProbe: {httpGet: {path: /hub/health, port: http}, initialDelaySeconds: 10, periodSeconds: 5, failureThreshold: 60}
+          readinessProbe: {httpGet: {path: /hub/health, port: hub-api}, initialDelaySeconds: 10, periodSeconds: 5, failureThreshold: 60}
           volumeMounts: [{name: config, mountPath: /etc/jupyterhub, readOnly: true}]
       volumes: [{name: config, configMap: {name: jupyterhub-poc-config}}]
 ---
@@ -77,11 +85,82 @@ data:
     c.GenericOAuthenticator.scope = ["openid", "profile"]
     c.GenericOAuthenticator.oauth_callback_url = "http://jupyterhub-poc:8000/hub/oauth_callback"
     c.GenericOAuthenticator.allow_all = True
+    c.JupyterHub.spawner_class = "kubespawner.KubeSpawner"
     c.JupyterHub.bind_url = "http://0.0.0.0:8000"
+    c.JupyterHub.hub_bind_url = "http://0.0.0.0:8081"
+    c.JupyterHub.hub_connect_url = "http://jupyterhub-poc:8081"
     c.JupyterHub.cookie_secret = bytes.fromhex("0123456789abcdef" * 4)
+    c.JupyterHub.api_tokens = {os.environ["HUB_ADMIN_TOKEN"]: "admin"}
+    c.Authenticator.admin_users = {"admin"}
     c.JupyterHub.log_level = "DEBUG"
+
+    # 一个用户 Server Pod 就是一个 Workspace：Jupyter Server、Terminal 和
+    # Kernel 在其中运行，但平台 OIDC/Kubernetes 密钥只留在 Hub Pod。
+    c.KubeSpawner.namespace = os.environ["POD_NAMESPACE"]
+    c.KubeSpawner.image = "docker.io/jupyter/base-notebook:python-3.11"
+    c.KubeSpawner.cmd = ["jupyterhub-singleuser"]
+    c.KubeSpawner.default_url = "/lab"
+    c.KubeSpawner.pod_name_template = "workspace-{user_server}"
+    c.KubeSpawner.component_label = "workspace"
+    c.KubeSpawner.extra_labels = {
+        "workspace-owner": "{username}",
+    }
+    c.KubeSpawner.service_account = "workspace"
+    c.KubeSpawner.automount_service_account_token = False
+    c.KubeSpawner.cpu_guarantee = 0.25
+    c.KubeSpawner.cpu_limit = 1
+    c.KubeSpawner.mem_guarantee = "512M"
+    c.KubeSpawner.mem_limit = "1G"
+    c.KubeSpawner.start_timeout = 180
+    c.KubeSpawner.http_timeout = 120
+    c.KubeSpawner.container_security_context = {
+        "allowPrivilegeEscalation": False,
+        "capabilities": {"drop": ["ALL"]},
+        "runAsUser": 1000,
+        "runAsGroup": 100,
+    }
+    c.KubeSpawner.extra_pod_config = {
+        "securityContext": {"seccompProfile": {"type": "RuntimeDefault"}}
+    }
 ---
 apiVersion: v1
 kind: Service
 metadata: {name: jupyterhub-poc}
-spec: {selector: {app: jupyterhub-poc}, ports: [{name: http, port: 8000}]}
+spec:
+  selector: {app: jupyterhub-poc}
+  ports:
+    - {name: http, port: 8000}
+    - {name: hub-api, port: 8081}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: jupyterhub-poc}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: workspace}
+automountServiceAccountToken: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: jupyterhub-workspace-manager}
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["create", "delete", "get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: jupyterhub-workspace-manager}
+subjects:
+  - {kind: ServiceAccount, name: jupyterhub-poc}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: jupyterhub-workspace-manager

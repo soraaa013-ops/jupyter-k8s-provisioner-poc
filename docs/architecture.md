@@ -2,11 +2,26 @@
 
 ## 目标
 
-为数据/AI 平台提供动态 Jupyter 运行能力，同时将交互入口与用户代码执行面
-隔离。用户代码只在独立 Kernel Pod 中运行，平台可以对 Kernel 设置独立的
-资源、身份、调度和网络策略。
+为数据/AI 平台提供动态 Jupyter 运行能力，并隔离平台控制面密钥与用户执行面。
+仓库保留“远程 Kernel Pod”实验；当前推荐路径由 JupyterHub 使用 KubeSpawner
+创建 Workspace Pod，用户级 Jupyter Server、Terminal 和 Kernel 均在无平台
+密钥的 Workspace 中运行。
 
-## 组件
+## 推荐的 Workspace 模式
+
+```text
+JupyterHub（OIDC 与 Kubernetes 控制权限）
+  └─ KubeSpawner ─► Workspace Pod
+                     ├─ single-user Jupyter Server / Lab
+                     ├─ Terminal
+                     └─ Kernel
+```
+
+这复用 Jupyter 原生 Terminal，不需要跨 Pod TerminalManager。Workspace 是不可信
+边界，任何进入其中的凭证均视为用户可见；平台管理密钥只留在 Hub/独立控制器。
+详见 `docs/workspace-isolation.md`。
+
+## 旧的远程 Kernel 实验组件
 
 ### Jupyter Server Pod
 

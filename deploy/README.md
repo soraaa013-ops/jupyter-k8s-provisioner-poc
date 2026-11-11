@@ -2,6 +2,7 @@
 
 - `base/`：Jupyter Server、Kubernetes Provisioner、RBAC、Service 和 Kernel NetworkPolicy。
 - `platform-poc/`：四种 mock 数据源、原生协议代理、UEM collector、mock OIDC、JupyterHub 和补充网络策略。
+- `platform-poc/sso-poc.yaml`：JupyterHub + KubeSpawner Workspace Pod、最小 RBAC 与无 token Workspace ServiceAccount。
 
 完整部署必须从仓库根目录执行：
 

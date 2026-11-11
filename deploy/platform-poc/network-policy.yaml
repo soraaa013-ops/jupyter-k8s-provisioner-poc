@@ -29,7 +29,9 @@ spec:
   podSelector: {matchLabels: {component: native-data-proxy}}
   policyTypes: [Ingress, Egress]
   ingress:
-    - from: [{podSelector: {matchLabels: {component: kernel}}}]
+    - from:
+        - {podSelector: {matchLabels: {component: kernel}}}
+        - {podSelector: {matchLabels: {component: workspace}}}
   egress:
     - to: [{podSelector: {matchLabels: {component: mock-database}}}]
     - to:
@@ -56,3 +58,39 @@ spec:
         - {podSelector: {matchLabels: {component: kernel}}}
         - {podSelector: {matchLabels: {component: jupyterlab}}}
       ports: [{protocol: TCP, port: 8080}]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: workspace-default-deny}
+spec:
+  podSelector: {matchLabels: {component: workspace}}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: workspace-jupyterhub}
+spec:
+  podSelector: {matchLabels: {component: workspace}}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from: [{podSelector: {matchLabels: {app: jupyterhub-poc}}}]
+  egress:
+    - to: [{podSelector: {matchLabels: {app: jupyterhub-poc}}}]
+      ports: [{protocol: TCP, port: 8081}]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: workspace-dns-and-data-proxies}
+spec:
+  podSelector: {matchLabels: {component: workspace}}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
+      ports: [{protocol: UDP, port: 53}, {protocol: TCP, port: 53}]
+    - to: [{podSelector: {matchLabels: {component: native-data-proxy}}}]
+      ports:
+        - {protocol: TCP, port: 5432}
+        - {protocol: TCP, port: 6033}
+        - {protocol: TCP, port: 27017}
+        - {protocol: TCP, port: 9200}

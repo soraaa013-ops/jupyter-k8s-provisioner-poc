@@ -2,6 +2,10 @@
 
 本目录包含 POC 的可执行实现，不包含 Kubernetes 资源定义。
 
+Workspace 模式主要使用 JupyterHub/KubeSpawner 标准能力，配置位于
+`../deploy/platform-poc/sso-poc.yaml`，验证位于 `../tests/workspace_smoke.py`；没有
+新增自研远程 Terminal 插件。
+
 ```text
 src/
 ├── uem-collector/                    # UEM mock 接收、校验和汇总

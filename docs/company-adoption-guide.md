@@ -8,6 +8,7 @@
 | --- | --- | --- |
 | JupyterHub/Server | 扩展、配置、用户 Server 生命周期接口 | 域名、Ingress、TLS、内部镜像仓库、持久化 |
 | Kernel Provisioner | Kernel Pod 模板、资源/安全约束、销毁 | 可用节点池、CNI/Pod 出口控制、配额 |
+| Workspace | KubeSpawner 模板、原生 Terminal/Kernel、密钥隔离测试 | PVC、镜像、Quota、空闲回收、可执行网络隔离 |
 | SSO | OIDC/OAuth 对接逻辑、claim/role 映射 | IdP client、issuer/JWKS、用户组、登出规范 |
 | UEM | Lab 采集、Server 转发、schema、脱敏 | Huawei UEM 协议、应用 ID、合规与保留期 |
 | 数据库代理 | PgBouncer/ProxySQL/HAProxy/Nginx 配置与客户端验证 | 真实数据库、DB 角色、动态凭证、审计平台、HA |

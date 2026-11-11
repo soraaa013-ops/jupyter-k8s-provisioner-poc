@@ -9,11 +9,13 @@ Browser ─► JupyterHub ─► Enterprise IdP
              │ /hub/oauth_callback
              │ user/groups/roles
              ▼
-       single-user Server ─► JupyterLab
-             └─ Provisioner ─► Kernel Pod
+       Workspace Pod
+       ├─ single-user Server / JupyterLab
+       ├─ 原生 Terminal
+       └─ 本地 Kernel
 ```
 
-优先 OIDCAuthenticator；若内部 IdP 只提供通用 OAuth2，则使用 GenericOAuthenticator 映射 username/groups。认证成功不等于授权，需显式允许用户/组并映射 Hub roles。
+优先 OIDCAuthenticator；若内部 IdP 只提供通用 OAuth2，则使用 GenericOAuthenticator 映射 username/groups。认证成功不等于授权，需显式允许用户/组并映射 Hub roles。Hub 通过 KubeSpawner 创建无平台密钥的 Workspace Pod。
 
 ## Standalone POC 替代方案
 

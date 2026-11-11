@@ -80,3 +80,15 @@ kubectl -n jupyter-poc exec -i "$kernel_pod" -- python - < tests/native_proxy_sm
 
 期望四项分别显示 `psycopg -> PgBouncer`、`PyMySQL -> ProxySQL`、`PyMongo -> HAProxy` 和 `Elasticsearch client -> Nginx` 通过。生产镜像必须预装锁定版本，不能在 Kernel 启动后访问公网安装。
 
+### Workspace Pod 验证
+
+通过 Hub API 或浏览器登录创建用户 Workspace 后运行：
+
+```bash
+workspace_pod=$(kubectl -n jupyter-poc get pod -l component=workspace -o jsonpath='{.items[0].metadata.name}')
+kubectl -n jupyter-poc exec -i "$workspace_pod" -- python - < tests/workspace_smoke.py
+```
+
+测试必须同时看到平台密钥隔离、`WORKSPACE_KERNEL_OK` 和
+`WORKSPACE_TERMINAL_OK`。二者 hostname 应与 Workspace Pod 名称相同。
+

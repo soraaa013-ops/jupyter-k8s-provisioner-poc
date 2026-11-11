@@ -1,5 +1,27 @@
 # 实际验证报告
 
+## Workspace Pod：通过
+
+JupyterHub 5.3 + KubeSpawner 7.0.0 已在 TKE 创建 `workspace-poc-user`。从该
+Pod 内通过 Jupyter 原生 API 创建 Kernel 和 Terminal，实测输出：
+
+```text
+WORKSPACE_KERNEL_OK:workspace-poc-user:jovyan
+WORKSPACE_TERMINAL_OK:workspace-poc-user:jovyan
+```
+
+Workspace 未挂载 Kubernetes ServiceAccount token，也没有
+`OAUTH_CLIENT_SECRET`、`HUB_ADMIN_TOKEN`、`UEM_COLLECTOR_TOKEN`。它仍包含
+JupyterHub 为当前用户 Server 签发的受限 API token，这是用户工作区凭证而非
+平台管理密钥。
+
+RBAC 实测：Hub ServiceAccount 可创建 Pod 但不能读取 Secret；Workspace
+ServiceAccount 不能读取 Pod 或 Secret。
+
+网络负向测试未通过：Workspace 仍能连接 `mock-mysql:3306`。这再次证明当前
+TKE Serverless 环境没有执行已提交的 NetworkPolicy；Workspace 模式解决了密钥
+和 Kubernetes 身份隔离，但没有自动解决 CNI/Pod 出口隔离。
+
 验证时间：2026-11-10；环境：腾讯云 TKE `cls-56b8021o`，namespace `jupyter-poc`。
 
 ## 已通过
