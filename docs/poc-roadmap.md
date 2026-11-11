@@ -7,6 +7,8 @@
 3. UEM：用 mock collector 验证通用扩展，再接 `HuaweiUemExporter`。
 4. SQL Proxy：以 PostgreSQL 完成身份映射、网络隔离和审计闭环。
 5. 故障与规模：验证 Hub/Server/Kernel/Proxy 重启、扩缩容和升级。
+6. Enterprise Gateway 备选：按 `enterprise-gateway-option.md` 验证远程 Kernel、
+   可信身份绑定、Terminal 禁用、失败关闭与故障恢复；完成前不替换已跑通路线。
 
 ## 每项必须交付
 
@@ -21,5 +23,6 @@
 - Huawei UEM 接入规范、合规字段与测试 endpoint。
 - 企业 OIDC/OAuth discovery、client 注册流程、claims/groups 样例。
 - SQL POC 数据库协议、测试库、允许操作与审计要求。
+- 是否需要 Spark/YARN、多计算集群或集中 Gateway，以及能否接受禁用本地 Terminal。
 
 真实密钥只进入外部 Secret 系统或临时 Kubernetes Secret，不提交 Git。

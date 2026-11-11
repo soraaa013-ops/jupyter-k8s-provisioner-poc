@@ -14,6 +14,17 @@ Kernel Pod: ipykernel + user code
 
 JupyterLab 是浏览器前端；Jupyter Server 是 HTTP/WebSocket 控制面；Kernel 是执行用户代码的计算面。Notebook 是文档，Kernel 是有状态进程，Session 将文档与 Kernel 关联。Kernel Provisioner 是 KernelManager 与运行环境之间的扩展点，本项目用它创建独立 Kernel Pod。
 
+本项目同时保留三种部署模型：
+
+| 模型 | Server/Kernel | Terminal | 状态 |
+| --- | --- | --- | --- |
+| 直接 Kubernetes Provisioner | 分 Pod | Server 本地 | 已实测 |
+| KubeSpawner Workspace | 同一用户 Workspace | 原生且同环境 | 已实测 |
+| Enterprise Gateway | 分 Pod，经集中 Gateway | Server 本地，安全模式需禁用 | 已调研、待实测 |
+
+Enterprise Gateway 路线详见 [`enterprise-gateway-option.md`](enterprise-gateway-option.md)。它集中远程 Kernel
+管理，但不提供远程 Terminal，也不能替代 UEM/插件可信后端。
+
 ## 平台扩展点
 
 | 诉求 | 推荐扩展点 |

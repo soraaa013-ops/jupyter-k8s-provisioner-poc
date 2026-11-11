@@ -6,6 +6,9 @@
 - [x] KubernetesProvisioner 生命周期链路
 - [x] Namespace RBAC和基础资源限制
 - [x] 网络策略定义和实测
+- [x] Workspace Pod 原生 Terminal/Kernel 与平台密钥隔离
+- [x] Enterprise Gateway 备选架构调研
+- [ ] Enterprise Gateway 最小链路与安全负向测试
 - [ ] 代码执行、中断和重启自动化测试
 
 ## 阶段 1：可重复部署

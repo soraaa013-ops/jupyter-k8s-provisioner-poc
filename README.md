@@ -11,6 +11,7 @@
 | 003 | Kernel 经原生协议代理访问数据源 | PgBouncer/ProxySQL/HAProxy/Nginx 已实测；TKE 网络隔离未通过 | [`docs/sql-proxy.md`](docs/sql-proxy.md) |
 | 004 | 企业 SSO 接入 | Mock OIDC → JupyterHub 登录已实测 | [`docs/sso.md`](docs/sso.md) |
 | 005 | Workspace Pod 与平台密钥隔离 | KubeSpawner、原生 Kernel/Terminal 已实测 | [`docs/workspace-isolation.md`](docs/workspace-isolation.md) |
+| 006 | Enterprise Gateway 远程 Kernel 备选 | 已调研、待部署验证 | [`docs/enterprise-gateway-option.md`](docs/enterprise-gateway-option.md) |
 
 整体组件边界见 [`docs/jupyter-architecture.md`](docs/jupyter-architecture.md)，后续顺序和验收标准见 [`docs/poc-roadmap.md`](docs/poc-roadmap.md)。
 集群实际测试结果（包括没有通过的 NetworkPolicy）见 [`docs/validation-report.md`](docs/validation-report.md)。

@@ -71,3 +71,5 @@ Kernel 使用 psycopg、PyMySQL、JDBC、SQLAlchemy 等标准驱动连接 PgBoun
 4. 前端凭证如何签发、数据库如何只允许代理源地址、审计由代理还是数据库承担。
 5. UEM 与安全审计的 schema、保留期、查询权限和告警责任人。
 6. Kernel 镜像准入、依赖安装、GPU、资源配额与空闲回收策略。
+7. 选择 Workspace、直接 Provisioner 或 Enterprise Gateway：若选择 EG，必须
+   明确禁用本地 Terminal、可信用户身份绑定、Gateway HA/恢复和插件密钥后端。

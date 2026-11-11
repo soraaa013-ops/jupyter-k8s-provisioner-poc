@@ -31,3 +31,6 @@ Pod，每个 Kernel 位于独立 Pod。不部署 Enterprise Gateway。
 未选择同 Pod 本地 Kernel（不满足隔离）、Enterprise Gateway（本 POC明确使用
 直接 Provisioner）和自研 Kernel 协议代理（重复标准能力且成本高）。
 
+该决策仅覆盖实验 001，不排除后续并行比较。Enterprise Gateway 备选已在
+`ADR-0002` 中重新打开，状态为 Proposed，不修改本 ADR 的历史结论。
+

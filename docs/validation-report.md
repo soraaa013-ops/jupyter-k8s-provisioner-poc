@@ -1,5 +1,11 @@
 # 实际验证报告
 
+## Enterprise Gateway：尚未验证
+
+Enterprise Gateway 当前只有架构调研和验收设计，未部署到本 TKE 集群，也没有
+产生运行测试结果。不得将 `docs/enterprise-gateway-option.md` 的目标能力视为已
+通过项；后续实测结果将在独立章节记录。
+
 ## Workspace Pod：通过
 
 JupyterHub 5.3 + KubeSpawner 7.0.0 已在 TKE 创建 `workspace-poc-user`。从该
