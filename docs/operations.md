@@ -2,11 +2,10 @@
 
 ## 部署
 
-综合 POC 先部署 mock 数据源、Gateway、OIDC 和扩展 ConfigMap，再部署 JupyterLab：
+综合 POC 从仓库根目录统一部署 mock 数据源、Gateway、OIDC、扩展和 JupyterLab：
 
 ```bash
-kubectl apply -k deploy/platform-poc
-kubectl apply -k deploy/base
+kubectl apply -k .
 kubectl -n jupyter-poc rollout status deploy/jupyterlab --timeout=300s
 kubectl -n jupyter-poc get pods -L component,kernel_id
 ```

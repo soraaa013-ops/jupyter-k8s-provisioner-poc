@@ -14,6 +14,18 @@
 整体组件边界见 [`docs/jupyter-architecture.md`](docs/jupyter-architecture.md)，后续顺序和验收标准见 [`docs/poc-roadmap.md`](docs/poc-roadmap.md)。
 集群实际测试结果（包括没有通过的 NetworkPolicy）见 [`docs/validation-report.md`](docs/validation-report.md)。
 
+## 源码在哪里
+
+| 模块 | 源码 | 作用 |
+| --- | --- | --- |
+| Data Gateway | [`src/data-gateway/app.py`](src/data-gateway/app.py) | PG/MySQL 查询、Mongo find、ES search、策略与审计 |
+| JupyterLab UEM | [`src/extensions/jupyterlab-poc-uem/src/index.ts`](src/extensions/jupyterlab-poc-uem/src/index.ts) | 浏览器事件采集 |
+| Jupyter Server UEM | [`src/extensions/jupyter-server-poc-telemetry/poc_telemetry.py`](src/extensions/jupyter-server-poc-telemetry/poc_telemetry.py) | 登录态校验与同源转发 |
+| Mock OIDC | [`src/mock-oidc/app.py`](src/mock-oidc/app.py) | Authorization Code、JWT、JWKS、userinfo |
+| 集群测试 | [`tests/platform_smoke.py`](tests/platform_smoke.py) | 正向查询与安全负向测试 |
+
+Kubernetes 清单只放在 [`deploy/`](deploy/)；公司环境替换清单见 [`docs/company-adoption-guide.md`](docs/company-adoption-guide.md)。
+
 ## 核心原则
 
 - 浏览器、Jupyter Server、Kernel 和外部数据源是不同信任域。
@@ -29,12 +41,11 @@
 ## 快速开始（实验 001）
 
 ```bash
-kubectl apply -k deploy/platform-poc
-kubectl apply -k deploy/base
+kubectl apply -k .
 kubectl -n jupyter-poc rollout status deployment/jupyterlab
 kubectl -n jupyter-poc port-forward service/jupyterlab 8888:8888
 ```
 
 打开 `http://127.0.0.1:8888/lab`。操作说明见 [`docs/operations.md`](docs/operations.md)。
 
-`deploy/platform-poc` 会启动临时 PostgreSQL、MySQL、MongoDB、Elasticsearch、Data Gateway、mock OIDC 和 JupyterHub，仅供 POC；其中 Secret 均为公开的 mock 值，不可用于真实环境。
+根目录 Kustomize 会启动临时 PostgreSQL、MySQL、MongoDB、Elasticsearch、Data Gateway、mock OIDC 和 JupyterHub，仅供 POC；其中 Secret 均为公开的 mock 值，不可用于真实环境。

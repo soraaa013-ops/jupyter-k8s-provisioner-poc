@@ -26,8 +26,23 @@ Kernel -> approved data services: explicit allowlist only
 `deploy/base/network-policy.yaml` 对 `component=kernel` 默认拒绝 ingress/egress，
 仅放行 JupyterLab 双向通信和 kube-system DNS。
 
-但是本次 TKE Serverless 实测发现 Kernel 仍能连接 Kubernetes API。资源 API
-支持 NetworkPolicy 不代表数据面实际执行策略。
+但是本次 TKE Serverless 实测发现 Kernel 仍能连接 Kubernetes API 和 mock
+数据库。检查发现节点为 `eklet` 超级节点，集群中没有 Calico、Cilium、Antrea
+等策略执行器，也没有腾讯云 `networkpolicy` 组件。API Server 接受并保存
+NetworkPolicy，不代表数据面实际执行策略。
+
+腾讯云 NetworkPolicy 是需要单独安装的集群组件；预期会在 `kube-system` 创建
+名为 `networkpolicy` 的 DaemonSet。当前集群不存在该对象。公司环境排查命令：
+
+```bash
+kubectl -n kube-system get daemonset networkpolicy
+kubectl get pods -A | grep -Ei 'calico|cilium|antrea|networkpolicy'
+kubectl get nodes -o custom-columns=NAME:.metadata.name,RUNTIME:.status.nodeInfo.containerRuntimeVersion
+```
+
+超级节点 Pod 直接占用 VPC IP。如果 NetworkPolicy 组件不覆盖该节点类型，应改用
+Pod 安全组/SecurityGroupPolicy；如果公司环境是普通节点且已有 Calico/Cilium，
+继续使用本项目的 NetworkPolicy 即可。最终以 Kernel 内连通性测试为准。
 
 ## 生产要求
 

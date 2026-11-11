@@ -17,7 +17,7 @@
 
 ## 未通过：TKE 网络隔离
 
-NetworkPolicy 对象已创建，但从现有 Kernel Pod 到四个后端的 TCP 连接全部成功。因此当前 TKE Serverless/EKS 数据面没有执行这些 Kubernetes NetworkPolicy，不能把“对象存在”当作网络隔离成功。
+NetworkPolicy 对象已创建，但从新建 Kernel Pod 到四个后端及 TKE API Server 的 TCP 连接全部成功。集群为 `eklet` 超级节点，且没有 Calico/Cilium/Antrea 或腾讯云 `networkpolicy` 组件，因此当前没有数据面执行这些 Kubernetes NetworkPolicy。不能把“对象存在”当作网络隔离成功。
 
 当前仍有数据库认证这一层：Kernel 没有后端密码，无法完成数据库登录；但生产验收要求网络层也失败。下一步应在腾讯云侧启用/配置适用于 Serverless Pod 的安全组或网络 ACL，或迁移到确认支持所选 NetworkPolicy provider 的节点池，然后重新运行 `tests/platform_smoke.py`，直到四项均显示 `DIRECT_BLOCKED`。
 
