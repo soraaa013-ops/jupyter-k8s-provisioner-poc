@@ -16,6 +16,11 @@
 整体组件边界见 [`docs/jupyter-architecture.md`](docs/jupyter-architecture.md)，后续顺序和验收标准见 [`docs/poc-roadmap.md`](docs/poc-roadmap.md)。
 集群实际测试结果（包括没有通过的 NetworkPolicy）见 [`docs/validation-report.md`](docs/validation-report.md)。
 
+## 方案评审入口
+
+- [`docs/current-poc-summary.md`](docs/current-poc-summary.md)：当前已完成 POC、DB Proxy、Pod 分离与失败项整理。
+- [`docs/target-architecture.md`](docs/target-architecture.md)：引入 Enterprise Gateway 后的生产目标方案与上线验收门。
+
 ## 源码在哪里
 
 | 模块 | 源码 | 作用 |
