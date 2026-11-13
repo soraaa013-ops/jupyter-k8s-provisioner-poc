@@ -42,6 +42,10 @@ ProxySQL 可以按 username/schema/digest/pattern 配置 query rules，并从 `s
 
 POC 只有一个固定 mock MySQL 后端，因此关闭了 ProxySQL monitor。生产应创建仅具备所需权限的专用 monitor 用户并启用后端健康检查；不要复用业务账号。
 
+> 安全版本说明（2026-11-13）：POC 实测的 PgBouncer 1.25.2 不能作为生产基线。
+> 官方 1.26.1 修复了认证绕过和两个客户端可触发的 DoS CVE；生产镜像至少使用
+> 1.26.1 或后续已修复稳定版，并固定 digest、扫描和签名。
+
 ## 凭证模型
 
 PgBouncer 和 ProxySQL 默认不会神奇地把“客户端身份”变成完全不同的数据库身份：客户端认证信息通常仍与后端用户关联。因此开源连接池本身不能同时保证“Kernel 不知道任何可用于数据库的凭据”和“透明原生协议”。

@@ -18,6 +18,7 @@
 
 ## 方案评审入口
 
+- [`docs/complete-enterprise-solution.md`](docs/complete-enterprise-solution.md)：Enterprise Gateway、Server 密钥、插件和开源 DB Proxy 的完整生产候选方案。
 - [`docs/current-poc-summary.md`](docs/current-poc-summary.md)：当前已完成 POC、DB Proxy、Pod 分离与失败项整理。
 - [`docs/target-architecture.md`](docs/target-architecture.md)：引入 Enterprise Gateway 后的生产目标方案与上线验收门。
 

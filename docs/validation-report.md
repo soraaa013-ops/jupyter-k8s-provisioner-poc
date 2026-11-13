@@ -54,6 +54,10 @@ NetworkPolicy 对象已创建，但从新建 Kernel Pod 到四个后端及 TKE A
 
 Mock 用户为了初始化方便仍拥有较高权限，而且 Kernel 使用的是演示密码。本轮只证明原生协议兼容和代理链路，不代表凭证隔离、只读授权或查询审计已经达到生产要求。公司环境必须创建最小权限 DB role、限制数据库只接受代理源地址，并确定短期凭证或工作负载身份方案。
 
+此外，PgBouncer 1.25.2 是当时的 POC 实测版本，不是当前生产安全基线。官方
+1.26.1 已修复认证绕过和两个客户端可触发的 DoS CVE；后续生产验证必须升级到
+1.26.1 或更高的已修复稳定版。该升级尚未在当前 TKE POC 中执行。
+
 ## SSO 范围
 
 本轮验证了外部 OIDC 到 JupyterHub 的登录、state、PKCE code challenge、token/userinfo 和用户创建。默认 LocalProcessSpawner 无法为容器内不存在的 Linux 用户启动 Server，这是预期边界；生产应替换为 KubeSpawner/平台自有 Spawner。现有 Kubernetes Provisioner 仍负责 Server 内的 Kernel Pod，不应拿它替代 Hub 的用户 Server Spawner。
